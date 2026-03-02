@@ -1,11 +1,5 @@
 import { Application, Container, FederatedPointerEvent } from "pixi.js";
 
-/**
- * Camera: manages pan (drag) and zoom for the game world.
- * - drag via mouse/touch
- * - zoom via mouse wheel (desktop) or pinch gesture (mobile)
- * - zoom is limited so background never reveals empty space
- */
 export class Camera {
   private dragging = false;
   private lastX = 0;

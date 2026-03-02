@@ -1,16 +1,16 @@
-import { Application, Assets, Container, Texture, Spritesheet } from "pixi.js";
-import Camera from "./core/Camera";
+import { Application, Assets, Texture, Spritesheet } from "pixi.js";
+import Viewport from "pixi-viewport";
 import Background from "./world/Background";
 import ItemManager from "./world/ItemManager";
 import UIManager from "./ui/UIManager";
 
 class Game {
   private app = new Application();
-  private world = new Container();
+  // viewport used as world container
+  private world!: Viewport;
   private ui!: UIManager;
 
   private background!: Background;
-  private camera!: Camera;
   private itemsManager!: ItemManager;
   private textures!: Record<string, Texture>;
 
@@ -27,6 +27,20 @@ class Game {
     const bgTexture = await Assets.load("/assets/back_lv0.webp");
     this.background = new Background(bgTexture);
 
+    // viewport creation after background dimensions known
+    this.world = new Viewport({
+      screenWidth: this.app.screen.width,
+      screenHeight: this.app.screen.height,
+      worldWidth: this.background.worldWidth,
+      worldHeight: this.background.worldHeight,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      interaction: (this.app.renderer as any).events,
+    });
+
+    this.world.drag().pinch().wheel().decelerate();
+    this.world.clamp({ direction: "all" });
+    this.world.clampZoom({ minScale: 1, maxScale: 3 });
+
     this.world.addChild(this.background.view);
     this.app.stage.addChild(this.world);
 
@@ -34,47 +48,30 @@ class Game {
       const sw = this.app.screen.width;
       const sh = this.app.screen.height;
       const scale = this.background.computeScale(sw, sh);
+
       this.world.scale.set(scale);
       this.world.position.set(sw / 2, sh / 2);
+
+      this.world.resize(sw, sh);
+      this.world.worldWidth = this.background.worldWidth * scale;
+      this.world.worldHeight = this.background.worldHeight * scale;
+      this.world.clamp();
+      this.world.clampZoom({ minScale: scale, maxScale: 3 });
     };
     this.resizeWorld = resizeWorld;
 
     this.ui = new UIManager(this.app);
     this.app.stage.addChild(this.ui.view);
 
-    this.camera = new Camera(
-      this.app,
-      this.world,
-      () => {
-        const s = this.world.scale.x;
-        return {
-          width: this.background.worldWidth * s,
-          height: this.background.worldHeight * s,
-        };
-      },
-      // dynamic min zoom: farthest view is limited so background always covers screen
-      () => {
-        const sw = this.app.screen.width;
-        const sh = this.app.screen.height;
-        const baseScale = this.background.computeScale(sw, sh);
-        const scaledWidth = this.background.worldWidth * baseScale;
-        const scaledHeight = this.background.worldHeight * baseScale;
-
-        const minZoomX = sw / scaledWidth;
-        const minZoomY = sh / scaledHeight;
-        return Math.max(minZoomX, minZoomY);
-      },
-    );
-
     this.spawnItems();
 
     window.addEventListener("resize", () => {
       resizeWorld();
-      this.camera.clamp();
+      this.world.clamp();
     });
 
     resizeWorld();
-    this.camera.clamp();
+    this.world.clamp();
 
     console.log("Game started");
   }
@@ -102,7 +99,7 @@ class Game {
     console.log("Restarting game...");
     this.ui.hideWin();
     this.resizeWorld();
-    this.camera.clamp();
+    this.world.clamp();
     this.spawnItems();
   }
 
