@@ -20,6 +20,10 @@ class UIManager {
   showWin(onRestart?: () => void) {
     this.winPopup.show(this.app, onRestart);
   }
+
+  hideWin() {
+    this.winPopup.hide();
+  }
 }
 
 export default UIManager;

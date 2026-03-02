@@ -42,7 +42,7 @@ export class WinPopup {
       text: "Перезапустить",
       style: {
         fill: 0xffffff,
-        fontSize: 20,
+        fontSize: 18,
         align: "center",
       },
     });
@@ -89,5 +89,9 @@ export class WinPopup {
         );
       }
     }
+  }
+
+  hide() {
+    this.container.removeChildren();
   }
 }

@@ -9,6 +9,11 @@ class Game {
   private world = new Container();
   private ui!: UIManager;
 
+  private background!: Background;
+  private camera!: Camera;
+  private itemsManager!: ItemManager;
+  private textures!: Record<string, Texture>;
+
   async start() {
     await this.app.init({ resizeTo: window, antialias: true });
     document.getElementById("pixi-container")!.appendChild(this.app.canvas);
@@ -17,51 +22,59 @@ class Game {
     if (!atlas || !atlas.textures) {
       throw new Error("Не удалось загрузить level0 атлас с текстурами!");
     }
-    const textures: Record<string, Texture> = atlas.textures;
+    this.textures = atlas.textures;
 
     const bgTexture = await Assets.load("/assets/back_lv0.webp");
-    const background = new Background(bgTexture);
+    this.background = new Background(bgTexture);
 
-    this.world.addChild(background.view);
+    this.world.addChild(this.background.view);
     this.app.stage.addChild(this.world);
 
     const resizeWorld = () => {
       const sw = this.app.screen.width;
       const sh = this.app.screen.height;
-      const scale = background.computeScale(sw, sh);
+      const scale = this.background.computeScale(sw, sh);
       this.world.scale.set(scale);
       this.world.position.set(sw / 2, sh / 2);
     };
+    this.resizeWorld = resizeWorld;
 
     this.ui = new UIManager(this.app);
     this.app.stage.addChild(this.ui.view);
 
-    const camera = new Camera(this.app, this.world, () => {
+    this.camera = new Camera(this.app, this.world, () => {
       const s = this.world.scale.x;
       return {
-        width: background.worldWidth * s,
-        height: background.worldHeight * s,
+        width: this.background.worldWidth * s,
+        height: this.background.worldHeight * s,
       };
     });
 
-    const items = new ItemManager(
-      textures,
-      background,
+    this.spawnItems();
+
+    window.addEventListener("resize", () => {
+      resizeWorld();
+      this.camera.clamp();
+    });
+
+    resizeWorld();
+    this.camera.clamp();
+
+    console.log("Game started");
+  }
+
+  private spawnItems() {
+    if (this.itemsManager) {
+      this.world.removeChild(this.itemsManager.view);
+    }
+    this.itemsManager = new ItemManager(
+      this.textures,
+      this.background,
       6,
       this.app.ticker,
       () => this.endGame(),
     );
-    this.world.addChild(items.view);
-
-    window.addEventListener("resize", () => {
-      resizeWorld();
-      camera.clamp();
-    });
-
-    resizeWorld();
-    camera.clamp();
-
-    console.log("Game started");
+    this.world.addChild(this.itemsManager.view);
   }
 
   private endGame() {
@@ -71,8 +84,13 @@ class Game {
 
   private restart() {
     console.log("Restarting game...");
-    location.reload();
+    this.ui.hideWin();
+    this.resizeWorld();
+    this.camera.clamp();
+    this.spawnItems();
   }
+
+  private resizeWorld: () => void = () => {};
 }
 
 export default Game;
