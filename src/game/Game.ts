@@ -42,13 +42,29 @@ class Game {
     this.ui = new UIManager(this.app);
     this.app.stage.addChild(this.ui.view);
 
-    this.camera = new Camera(this.app, this.world, () => {
-      const s = this.world.scale.x;
-      return {
-        width: this.background.worldWidth * s,
-        height: this.background.worldHeight * s,
-      };
-    });
+    this.camera = new Camera(
+      this.app,
+      this.world,
+      () => {
+        const s = this.world.scale.x;
+        return {
+          width: this.background.worldWidth * s,
+          height: this.background.worldHeight * s,
+        };
+      },
+      // dynamic min zoom: farthest view is limited so background always covers screen
+      () => {
+        const sw = this.app.screen.width;
+        const sh = this.app.screen.height;
+        const baseScale = this.background.computeScale(sw, sh);
+        const scaledWidth = this.background.worldWidth * baseScale;
+        const scaledHeight = this.background.worldHeight * baseScale;
+
+        const minZoomX = sw / scaledWidth;
+        const minZoomY = sh / scaledHeight;
+        return Math.max(minZoomX, minZoomY);
+      },
+    );
 
     this.spawnItems();
 
