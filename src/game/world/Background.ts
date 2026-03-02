@@ -10,7 +10,7 @@ class Background {
     this.baseHeight = texture.height;
 
     this.sprite = new Sprite(texture);
-    this.sprite.anchor.set(0.5);
+    // this.sprite.anchor.set(0.5);
   }
 
   get view(): Sprite {

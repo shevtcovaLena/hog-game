@@ -38,8 +38,11 @@ class ItemManager {
     const worldWidth = this.bg.worldWidth;
     const worldHeight = this.bg.worldHeight;
     const padding = 50;
-    const halfW = worldWidth / 2;
-    const halfH = worldHeight / 2;
+
+    // background без якоря: (0,0) это левый верхний угол
+    // центр фона в координатах спрайта: (worldWidth/2, worldHeight/2)
+    const centerX = worldWidth / 2;
+    const centerY = worldHeight / 2;
 
     selectedKeys.forEach((key) => {
       const item = new Sprite(this.atlasTextures[key]);
@@ -48,8 +51,11 @@ class ItemManager {
       item.eventMode = "static";
       item.cursor = "pointer";
 
-      const x = Math.random() * (worldWidth - padding * 2) - (halfW - padding);
-      const y = Math.random() * (worldHeight - padding * 2) - (halfH - padding);
+      // позиция относительно центра фона с паддингом
+      const offsetX = (Math.random() - 0.5) * (worldWidth - padding * 2);
+      const offsetY = (Math.random() - 0.5) * (worldHeight - padding * 2);
+      const x = centerX + offsetX;
+      const y = centerY + offsetY;
 
       item.position.set(x, y);
 

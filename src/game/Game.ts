@@ -1,4 +1,4 @@
-import { Application, Assets, Texture, Spritesheet } from "pixi.js";
+import { Application, Assets, Container, Texture, Spritesheet } from "pixi.js";
 import { Viewport } from "pixi-viewport";
 import Background from "./world/Background";
 import ItemManager from "./world/ItemManager";
@@ -6,8 +6,8 @@ import UIManager from "./ui/UIManager";
 
 class Game {
   private app = new Application();
-  // viewport used as world container
-  private world!: Viewport;
+  private world!: Viewport; // viewport as camera
+  private worldContent!: Container; // container for content to scale together
   private ui!: UIManager;
 
   private background!: Background;
@@ -27,61 +27,60 @@ class Game {
     const bgTexture = await Assets.load("/assets/back_lv0.webp");
     this.background = new Background(bgTexture);
 
-    // viewport creation after background dimensions known
-    // create viewport; interaction plugin will be picked up automatically after
-    // adding to stage, so we can omit explicit `interaction` in options.
     this.world = new Viewport({
       screenWidth: this.app.screen.width,
       screenHeight: this.app.screen.height,
-      worldWidth: this.background.worldWidth,
-      worldHeight: this.background.worldHeight,
-      // renderer.events is required by the viewport typings
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      events: (this.app.renderer as any).events,
+      worldWidth: this.app.screen.width,
+      worldHeight: this.app.screen.height,
+      events: this.app.renderer.events,
     });
 
+    // ✅ Базовые плагины для управления
     this.world.drag().pinch().wheel().decelerate();
     this.world.clamp({ direction: "all" });
     this.world.clampZoom({ minScale: 1, maxScale: 3 });
 
-    this.world.addChild(this.background.view);
+    // ✅ Одновременный контейнер для масштабирования всего содержимого
+    this.worldContent = new Container();
+    this.worldContent.addChild(this.background.view);
+    this.world.addChild(this.worldContent);
     this.app.stage.addChild(this.world);
 
-    const resizeWorld = () => {
-      const sw = this.app.screen.width;
-      const sh = this.app.screen.height;
-      const scale = this.background.computeScale(sw, sh);
-
-      this.world.scale.set(scale);
-      this.world.position.set(sw / 2, sh / 2);
-
-      this.world.resize(sw, sh);
-      this.world.worldWidth = this.background.worldWidth * scale;
-      this.world.worldHeight = this.background.worldHeight * scale;
-      this.world.clamp();
-      this.world.clampZoom({ minScale: scale, maxScale: 3 });
-    };
-    this.resizeWorld = resizeWorld;
-
+    // ✅ UI поверх viewport
     this.ui = new UIManager(this.app);
     this.app.stage.addChild(this.ui.view);
 
+    // ✅ Resize + первый запуск
+    const resizeWorld = () => {
+      const sw = this.app.screen.width;
+      const sh = this.app.screen.height;
+
+      // масштабируем контейнер содержимого под размер экрана
+      const scale = this.background.computeScale(sw, sh);
+      this.worldContent.scale.set(scale);
+      this.worldContent.position.set(0, 0);
+
+      // обновляем viewport размеры в асортинар с масштабом
+      this.world.resize(sw, sh);
+      const scaledW = this.background.worldWidth * scale;
+      const scaledH = this.background.worldHeight * scale;
+      this.world.worldWidth = scaledW;
+      this.world.worldHeight = scaledH;
+
+      // переопределяем клэмпинг с новыми размерами
+      this.world.clamp({ direction: "all" });
+    };
+    this.resizeWorld = resizeWorld;
+
+    window.addEventListener("resize", () => this.resizeWorld());
+    this.resizeWorld();
+
     this.spawnItems();
-
-    window.addEventListener("resize", () => {
-      resizeWorld();
-      this.world.clamp();
-    });
-
-    resizeWorld();
-    this.world.clamp();
-
-    console.log("Game started");
   }
 
   private spawnItems() {
     if (this.itemsManager) {
-      this.world.removeChild(this.itemsManager.view);
+      this.worldContent.removeChild(this.itemsManager.view);
     }
     this.itemsManager = new ItemManager(
       this.textures,
@@ -90,7 +89,7 @@ class Game {
       this.app.ticker,
       () => this.endGame(),
     );
-    this.world.addChild(this.itemsManager.view);
+    this.worldContent.addChild(this.itemsManager.view);
   }
 
   private endGame() {
@@ -101,8 +100,6 @@ class Game {
   private restart() {
     console.log("Restarting game...");
     this.ui.hideWin();
-    this.resizeWorld();
-    this.world.clamp();
     this.spawnItems();
   }
 
