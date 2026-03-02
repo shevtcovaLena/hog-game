@@ -11,6 +11,7 @@ class ItemManager {
     private count: number,
     private ticker: Ticker,
     private onComplete: () => void,
+    private onItemCollected?: (current: number, total: number) => void,
   ) {
     if (!this.atlasTextures) {
       throw new Error("ItemManager: atlasTextures is undefined");
@@ -22,6 +23,15 @@ class ItemManager {
     return this.container;
   }
 
+  /**
+   * Очистить все предметы и контейнер (перед перезапуском)
+   */
+  cleanup() {
+    this.items.forEach((item) => item.destroy());
+    this.items = [];
+    this.container.destroy({ children: true });
+  }
+
   private spawnRandomItems() {
     const objectKeys = Object.keys(this.atlasTextures).filter((key) =>
       key.startsWith("obj-lvl-0/"),
@@ -31,16 +41,12 @@ class ItemManager {
       console.warn("Не хватает объектов в атласе для spawnRandomItems");
     }
 
-    const selectedKeys = objectKeys
-      .sort(() => Math.random() - 0.5)
-      .slice(0, this.count);
+    const selectedKeys = this.selectRandomTexture(this.count);
 
     const worldWidth = this.bg.worldWidth;
     const worldHeight = this.bg.worldHeight;
     const padding = 50;
 
-    // background без якоря: (0,0) это левый верхний угол
-    // центр фона в координатах спрайта: (worldWidth/2, worldHeight/2)
     const centerX = worldWidth / 2;
     const centerY = worldHeight / 2;
 
@@ -68,6 +74,19 @@ class ItemManager {
     console.log("Spawned items:", this.items.length, selectedKeys);
   }
 
+  private selectRandomTexture(count: number): string[] {
+    const textureNames = Object.keys(this.atlasTextures);
+    const selected: string[] = [];
+
+    for (let i = 0; i < count; i++) {
+      const name =
+        textureNames[Math.floor(Math.random() * textureNames.length)];
+      selected.push(name);
+    }
+
+    return [...new Set(selected)];
+  }
+
   private collect(item: Sprite) {
     item.eventMode = "none";
 
@@ -82,6 +101,13 @@ class ItemManager {
         item.destroy();
         this.items = this.items.filter((i) => i !== item);
 
+        // Обновить счетчик в UI
+        const collected = this.count - this.items.length;
+        if (this.onItemCollected) {
+          this.onItemCollected(collected, this.count);
+        }
+
+        // Проверить завершение
         if (this.items.length === 0) {
           this.onComplete();
         }

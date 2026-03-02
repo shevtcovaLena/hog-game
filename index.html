@@ -3,15 +3,65 @@
 <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/favicon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#000000" />
     <link rel="stylesheet" href="/style.css">
-    <title>Найди</title>
+    <title>Найди предметы</title>
 </head>
 
 <body>
-    <div id="app" style="padding: 4px;">
-        <div id="pixi-container"></div>
+    <div class="game-container">
+        <!-- HEADER: Таймер, счет, звук -->
+        <header class="header">
+            <div class="header-left">
+                <span class="timer" id="timer">⏰ 0:00</span>
+            </div>
+            <div class="header-right">
+                <span class="score" id="score">🎯 0/6</span>
+            </div>
+        </header>
+
+        <!-- GAME CANVAS -->
+        <div id="pixi-container" class="pixi-container"></div>
+
+        <!-- FOOTER: Контролы зума и перезапуск -->
+        <footer class="footer">
+            <button class="control-btn" id="zoom-in" title="Приблизить">➕</button>
+            <button class="control-btn" id="zoom-out" title="Отдалить">➖</button>
+            <button class="control-btn" id="reset-btn" title="Сбросить вид">🔳</button>
+            <button class="control-btn" id="info-btn" title="Информация">ⓘ</button>
+        </footer>
+
+        <!-- UI OVERLAY: Модалки (WinPopup, настройки и т.д.) -->
+        <div id="ui-overlay" class="ui-overlay">
+            <!-- Win Popup -->
+            <div id="win-popup" class="popup hidden">
+                <div class="popup-content">
+                    <h2 class="popup-title">🎉 Все предметы найдены!</h2>
+                    <p class="popup-subtitle">Отличная работа!</p>
+                    <button class="popup-btn primary" id="restart-popup-btn">🔄 Играть снова</button>
+                </div>
+            </div>
+
+            <!-- Info Popup -->
+            <div id="info-popup" class="popup hidden">
+                <div class="popup-content">
+                    <h2 class="popup-title">📖 Как играть</h2>
+                    <div class="popup-text">
+                        <p>🎯 <strong>Найди все предметы</strong> на картинке</p>
+                        <p>👆 Коснись предмета, чтобы собрать его</p>
+                        <p>🖐️ <strong>Drag</strong> — тащи камеру одним пальцем</p>
+                        <p>✌️ <strong>Pinch</strong> — масштабируй двумя пальцами</p>
+                        <p>🔄 <strong>Scroll</strong> — колесико для зума (десктоп)</p>
+                    </div>
+                    <button class="popup-btn secondary" id="close-info-btn">✓ Понял</button>
+                </div>
+            </div>
+        </div>
     </div>
+
     <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

@@ -6,25 +6,39 @@ import UIManager from "./ui/UIManager";
 
 class Game {
   private app = new Application();
-  private world!: Viewport; // viewport as camera
-  private worldContent!: Container; // container for content to scale together
+  private world!: Viewport;
+  private worldContent!: Container;
   private ui!: UIManager;
 
   private background!: Background;
   private itemsManager!: ItemManager;
   private textures!: Record<string, Texture>;
 
+  private readonly ITEMS_COUNT = 6;
+
   async start() {
     await this.app.init({ resizeTo: window, antialias: true });
     document.getElementById("pixi-container")!.appendChild(this.app.canvas);
 
+    // Загрузка атласа с текстурами предметов
     const atlas = await Assets.load<Spritesheet>("/assets/level0_items.json");
-    if (!atlas || !atlas.textures) {
-      throw new Error("Не удалось загрузить level0 атлас с текстурами!");
+    if (!atlas?.textures) {
+      console.error("Ошибка: атлас не загрузился или не содержит текстур");
+      throw new Error(
+        "Не удалось загрузить атлас предметов (/assets/level0_items.json)",
+      );
     }
     this.textures = atlas.textures;
+    console.log(`Загружено текстур: ${Object.keys(this.textures).length}`);
 
+    // Загрузка фонового изображения
     const bgTexture = await Assets.load("/assets/back_lv0.webp");
+    if (!bgTexture) {
+      console.error("Ошибка: фоновое изображение не загрузилось");
+      throw new Error(
+        "Не удалось загрузить фоновое изображение (/assets/back_lv0.webp)",
+      );
+    }
     this.background = new Background(bgTexture);
 
     this.world = new Viewport({
@@ -46,64 +60,83 @@ class Game {
     this.world.addChild(this.worldContent);
     this.app.stage.addChild(this.world);
 
-    // ✅ UI поверх viewport
-    this.ui = new UIManager(this.app);
-    this.app.stage.addChild(this.ui.view);
+    // ✅ Инициализировать UI Manager (НЕ добавлять в Pixi сцену!)
+    this.ui = new UIManager();
+    this.ui.connectControls(this.world);
+    this.ui.onRestart(() => this.restart());
 
-    // ✅ Resize + первый запуск
-    const resizeWorld = () => {
-      const sw = this.app.screen.width;
-      const sh = this.app.screen.height;
+    // ✅ Resize + ориентация
+    window.addEventListener("resize", () => this.onScreenChange());
+    window.addEventListener("orientationchange", () => this.onScreenChange());
+    this.onScreenChange();
 
-      // масштабируем контейнер содержимого под размер экрана
-      const scale = this.background.computeScale(sw, sh);
-      this.worldContent.scale.set(scale);
-      this.worldContent.position.set(0, 0);
-
-      // обновляем viewport размеры в асортинар с масштабом
-      this.world.resize(sw, sh);
-      const scaledW = this.background.worldWidth * scale;
-      const scaledH = this.background.worldHeight * scale;
-      this.world.worldWidth = scaledW;
-      this.world.worldHeight = scaledH;
-
-      // переопределяем клэмпинг с новыми размерами
-      this.world.clamp({ direction: "all" });
-    };
-    this.resizeWorld = resizeWorld;
-
-    window.addEventListener("resize", () => this.resizeWorld());
-    this.resizeWorld();
-
+    // ✅ Запустить первый уровень
     this.spawnItems();
+    this.ui.startTimer();
   }
 
   private spawnItems() {
+    // Очистить предыдущие предметы
     if (this.itemsManager) {
       this.worldContent.removeChild(this.itemsManager.view);
+      this.itemsManager.cleanup();
     }
+
+    // Спавнить новые
     this.itemsManager = new ItemManager(
       this.textures,
       this.background,
-      6,
+      this.ITEMS_COUNT,
       this.app.ticker,
       () => this.endGame(),
+      (collected, total) => this.ui.updateScore(collected, total),
     );
     this.worldContent.addChild(this.itemsManager.view);
+
+    // Обновить UI
+    this.ui.updateScore(0, this.ITEMS_COUNT);
   }
 
   private endGame() {
-    console.log("Game ended - all items collected!");
-    this.ui.showWin(() => this.restart());
+    console.log("🎉 Game ended - all items collected!");
+    this.ui.showWin();
   }
 
   private restart() {
-    console.log("Restarting game...");
-    this.ui.hideWin();
+    console.log("🔄 Restarting game...");
+    this.ui.reset();
     this.spawnItems();
+    this.ui.startTimer();
   }
 
-  private resizeWorld: () => void = () => {};
+  private onScreenChange() {
+    const sw = window.innerWidth;
+    const sh = window.innerHeight;
+
+    this.app.renderer.resize(sw, sh);
+
+    this.resizeWorld(sw, sh);
+  }
+
+  /**
+   * Пересчитать размер мира при заданной ширине/высоте экрана
+   */
+  private resizeWorld(sw: number, sh: number) {
+    // масштабируем контейнер содержимого под размер экрана
+    const scale = this.background.computeScale(sw, sh);
+    this.worldContent.scale.set(scale);
+    this.worldContent.position.set(0, 0);
+
+    // обновляем viewport размеры в соответствии с масштабом
+    this.world.resize(sw, sh);
+    const scaledW = this.background.worldWidth * scale;
+    const scaledH = this.background.worldHeight * scale;
+    this.world.worldWidth = scaledW;
+    this.world.worldHeight = scaledH;
+
+    // переопределяем клэмпинг с новыми размерами
+    this.world.clamp({ direction: "all" });
+  }
 }
 
 export default Game;

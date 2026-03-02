@@ -1,15 +1,399 @@
-body {
-    margin: 0;
-    padding: 0;
-    color: rgba(255, 255, 255, 0.87);
-    background-color: #000000;
+/* ============================================
+   RESET & GLOBAL STYLES
+   ============================================ */
+
+* {
+    box-sizing: border-box;
 }
 
-#app {
+html, body {
+    margin: 0;
+    padding: 0;
     width: 100%;
-    height: 100vh;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    background-color: #000000;
+    color: rgba(255, 255, 255, 0.87);
     overflow: hidden;
+    touch-action: manipulation;
+}
+
+/* ============================================
+   MAIN CONTAINER: Flexbox для верстки
+   ============================================ */
+
+.game-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+/* ============================================
+   HEADER (12% от высоты)
+   ============================================ */
+
+.header {
+    flex: 0 0 auto;
+    min-height: 50px;
+    padding: 8px 12px;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.5));
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    z-index: 10;
+}
+
+.header-left,
+.header-center,
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-center {
+    flex: 1;
+    justify-content: center;
+}
+
+.timer,
+.score {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+/* ============================================
+   GAME CANVAS (76% от высоты)
+   ============================================ */
+
+.pixi-container {
+    flex: 1 1 auto;
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+    background-color: #1a1a1a;
+}
+
+#pixi-container canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* ============================================
+   FOOTER (12% от высоты)
+   ============================================ */
+
+.footer {
+    flex: 0 0 auto;
+    min-height: 50px;
+    padding: 8px 12px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.5));
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     justify-content: center;
     align-items: center;
+    gap: 12px;
+    z-index: 10;
+}
+
+.control-btn {
+    min-width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(76, 175, 80, 0.8);
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: manipulation;
+    font-weight: 600;
+}
+
+.control-btn:hover {
+    background: rgba(76, 175, 80, 1);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.control-btn:active {
+    transform: scale(0.95);
+    background: rgba(69, 160, 73, 0.9);
+}
+
+.control-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ============================================
+   UI OVERLAY & POPUPS
+   ============================================ */
+
+.ui-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    pointer-events: auto;
+    animation: fadeIn 0.3s ease;
+}
+
+.popup.hidden {
+    display: none;
+    pointer-events: none;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.popup-content {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 90%;
+    width: 360px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.popup-title {
+    margin: 0 0 12px 0;
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.5px;
+}
+
+.popup-subtitle {
+    margin: 0 0 24px 0;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.popup-text {
+    margin: 0 0 24px 0;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.6;
+    text-align: left;
+}
+
+.popup-text p {
+    margin: 12px 0;
+}
+
+.popup-text strong {
+    color: #4caf50;
+}
+
+.popup-btn {
+    width: 100%;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    touch-action: manipulation;
+    letter-spacing: 0.5px;
+}
+
+.popup-btn.primary {
+    background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+    color: #fff;
+    margin-top: 16px;
+}
+
+.popup-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(76, 175, 80, 0.4);
+}
+
+.popup-btn.primary:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+}
+
+.popup-btn.secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.popup-btn.secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.popup-btn.secondary:active {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+/* Мобильные устройства в портретной ориентации */
+@media (orientation: portrait) {
+    .game-container {
+        flex-direction: column;
+    }
+    
+    .header {
+        min-height: 48px;
+        padding: 6px 12px;
+    }
+
+    .footer {
+        min-height: 48px;
+        padding: 6px 12px;
+    }
+
+    .timer, .score {
+        font-size: 14px;
+    }
+
+    .popup-content {
+        width: calc(100% - 24px);
+        padding: 24px;
+    }
+
+    .popup-title {
+        font-size: 20px;
+    }
+}
+
+/* Мобильные устройства в ландшафтной ориентации */
+@media (orientation: landscape) and (max-height: 600px) {
+    .header {
+        min-height: 44px;
+        padding: 4px 12px;
+    }
+
+    .footer {
+        min-height: 44px;
+        padding: 4px 12px;
+    }
+
+    .timer, .score {
+        font-size: 13px;
+    }
+
+    .control-btn {
+        min-width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+
+    .popup-content {
+        width: 340px;
+        padding: 24px;
+    }
+
+    .popup-title {
+        font-size: 20px;
+    }
+
+    .popup-text {
+        font-size: 13px;
+    }
+}
+
+/* Планшеты и большие экраны */
+@media (min-width: 768px) {
+    .header {
+        padding: 12px 24px;
+        min-height: 60px;
+    }
+
+    .footer {
+        padding: 12px 24px;
+        min-height: 60px;
+    }
+
+    .timer, .score {
+        font-size: 18px;
+    }
+
+    .popup-content {
+        width: 420px;
+        padding: 40px;
+    }
+
+    .popup-title {
+        font-size: 28px;
+    }
+}
+
+/* Dark mode поддержка */
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #000000;
+    }
+
+    .pixi-container {
+        background-color: #0a0a0a;
+    }
+}
+
+/* Поддержка notch (Safe Area на iPhone X+) */
+@supports (padding: max(0px)) {
+    .header {
+        padding-left: max(12px, env(safe-area-inset-left));
+        padding-right: max(12px, env(safe-area-inset-right));
+    }
+
+    .footer {
+        padding-left: max(12px, env(safe-area-inset-left));
+        padding-right: max(12px, env(safe-area-inset-right));
+        padding-bottom: max(8px, env(safe-area-inset-bottom));
+    }
 }
