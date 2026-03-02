@@ -1,5 +1,5 @@
 import { Application, Assets, Texture, Spritesheet } from "pixi.js";
-import Viewport from "pixi-viewport";
+import { Viewport } from "pixi-viewport";
 import Background from "./world/Background";
 import ItemManager from "./world/ItemManager";
 import UIManager from "./ui/UIManager";
@@ -28,13 +28,16 @@ class Game {
     this.background = new Background(bgTexture);
 
     // viewport creation after background dimensions known
+    // create viewport; interaction plugin will be picked up automatically after
+    // adding to stage, so we can omit explicit `interaction` in options.
     this.world = new Viewport({
       screenWidth: this.app.screen.width,
       screenHeight: this.app.screen.height,
       worldWidth: this.background.worldWidth,
       worldHeight: this.background.worldHeight,
+      // renderer.events is required by the viewport typings
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      interaction: (this.app.renderer as any).events,
+      events: (this.app.renderer as any).events,
     });
 
     this.world.drag().pinch().wheel().decelerate();
