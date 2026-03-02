@@ -1,0 +1,189 @@
+{
+  "meta": {
+    "image": "level0.webp",
+    "size": { "w": 2048, "h": 1024 }
+  },
+  "frames": {
+    "animations/anim0/lamp": {
+      "frame": { "x": 2, "y": 298, "w": 271, "h": 333 },
+      "rotated": true
+    },
+    "animations/anim2/svet": {
+      "frame": { "x": 2, "y": 570, "w": 327, "h": 443 },
+      "rotated": false
+    },
+
+    "obj-lvl-0/lvl_0_object": {
+      "frame": { "x": 809, "y": 510, "w": 120, "h": 149 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_1": {
+      "frame": { "x": 695, "y": 49, "w": 197, "h": 111 },
+      "rotated": true
+    },
+    "obj-lvl-0/lvl_0_object_10": {
+      "frame": { "x": 1146, "y": 774, "w": 121, "h": 66 },
+      "rotated": true
+    },
+    "obj-lvl-0/lvl_0_object_11": {
+      "frame": { "x": 978, "y": 137, "w": 91, "h": 127 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_12": {
+      "frame": { "x": 524, "y": 71, "w": 169, "h": 242 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_13": {
+      "frame": { "x": 1041, "y": 615, "w": 108, "h": 87 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_14": {
+      "frame": { "x": 846, "y": 815, "w": 88, "h": 198 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_15": {
+      "frame": { "x": 326, "y": 571, "w": 216, "h": 277 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_16": {
+      "frame": { "x": 124, "y": 14, "w": 89, "h": 61 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_17": {
+      "frame": { "x": 961, "y": 737, "w": 154, "h": 77 },
+      "rotated": true
+    },
+    "obj-lvl-0/lvl_0_object_18": {
+      "frame": { "x": 544, "y": 599, "w": 115, "h": 214 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_19": {
+      "frame": { "x": 544, "y": 815, "w": 198, "h": 175 },
+      "rotated": true
+    },
+    "obj-lvl-0/lvl_0_object_2": {
+      "frame": { "x": 978, "y": 48, "w": 131, "h": 87 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_20": {
+      "frame": { "x": 694, "y": 510, "w": 113, "h": 303 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_21": {
+      "frame": { "x": 1035, "y": 450, "w": 87, "h": 130 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_22": {
+      "frame": { "x": 403, "y": 115, "w": 119, "h": 454 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_23": {
+      "frame": { "x": 337, "y": 507, "w": 52, "h": 62 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_24": {
+      "frame": { "x": 2, "y": 77, "w": 399, "h": 219 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_25": {
+      "frame": { "x": 330, "y": 850, "w": 158, "h": 163 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_26": {
+      "frame": { "x": 922, "y": 266, "w": 120, "h": 115 },
+      "rotated": true
+    },
+    "obj-lvl-0/lvl_0_object_28": {
+      "frame": { "x": 796, "y": 336, "w": 172, "h": 115 },
+      "rotated": true
+    },
+    "obj-lvl-0/lvl_0_object_3": {
+      "frame": { "x": 721, "y": 842, "w": 171, "h": 123 },
+      "rotated": true
+    },
+    "obj-lvl-0/lvl_0_object_31": {
+      "frame": { "x": 2, "y": 14, "w": 120, "h": 61 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_32": {
+      "frame": { "x": 1110, "y": 2, "w": 90, "h": 103 },
+      "rotated": true
+    },
+    "obj-lvl-0/lvl_0_object_33": {
+      "frame": { "x": 1125, "y": 897, "w": 75, "h": 116 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_34": {
+      "frame": { "x": 1124, "y": 497, "w": 77, "h": 116 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_35": {
+      "frame": { "x": 1071, "y": 206, "w": 120, "h": 81 },
+      "rotated": true
+    },
+    "obj-lvl-0/lvl_0_object_36": {
+      "frame": { "x": 1040, "y": 893, "w": 83, "h": 120 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_37": {
+      "frame": { "x": 1126, "y": 375, "w": 68, "h": 120 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_38": {
+      "frame": { "x": 808, "y": 71, "w": 168, "h": 100 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_39": {
+      "frame": { "x": 913, "y": 388, "w": 120, "h": 120 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_4": {
+      "frame": { "x": 524, "y": 315, "w": 254, "h": 168 },
+      "rotated": true
+    },
+    "obj-lvl-0/lvl_0_object_40": {
+      "frame": { "x": 936, "y": 893, "w": 99, "h": 120 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_41": {
+      "frame": { "x": 1024, "y": 704, "w": 120, "h": 120 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_42": {
+      "frame": { "x": 1039, "y": 328, "w": 120, "h": 85 },
+      "rotated": true
+    },
+    "obj-lvl-0/lvl_0_object_43": {
+      "frame": { "x": 919, "y": 582, "w": 120, "h": 120 },
+      "rotated": true
+    },
+    "obj-lvl-0/lvl_0_object_44": {
+      "frame": { "x": 1111, "y": 94, "w": 110, "h": 85 },
+      "rotated": true
+    },
+    "obj-lvl-0/lvl_0_object_45": {
+      "frame": { "x": 490, "y": 893, "w": 30, "h": 120 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_5": {
+      "frame": { "x": 695, "y": 248, "w": 99, "h": 260 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_6": {
+      "frame": { "x": 403, "y": 22, "w": 104, "h": 91 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_7": {
+      "frame": { "x": 809, "y": 704, "w": 150, "h": 109 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_8": {
+      "frame": { "x": 2, "y": 577, "w": 97, "h": 58 },
+      "rotated": false
+    },
+    "obj-lvl-0/lvl_0_object_9": {
+      "frame": { "x": 808, "y": 173, "w": 112, "h": 161 },
+      "rotated": false
+    }
+  }
+}
