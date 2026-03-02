@@ -9,7 +9,7 @@ class UIManager {
     this.container.addChild(this.winPopup.view);
 
     window.addEventListener("resize", () => {
-      this.winPopup.resize(this.app);
+      this.winPopup.updateLayout(this.app);
     });
   }
 
@@ -17,8 +17,8 @@ class UIManager {
     return this.container;
   }
 
-  showWin() {
-    this.winPopup.show(this.app);
+  showWin(onRestart?: () => void) {
+    this.winPopup.show(this.app, onRestart);
   }
 }
 

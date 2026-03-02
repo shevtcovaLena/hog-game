@@ -7,6 +7,7 @@ import UIManager from "./ui/UIManager";
 class Game {
   private app = new Application();
   private world = new Container();
+  private ui!: UIManager;
 
   async start() {
     await this.app.init({ resizeTo: window, antialias: true });
@@ -32,8 +33,8 @@ class Game {
       this.world.position.set(sw / 2, sh / 2);
     };
 
-    const ui = new UIManager(this.app);
-    this.app.stage.addChild(ui.view);
+    this.ui = new UIManager(this.app);
+    this.app.stage.addChild(this.ui.view);
 
     const camera = new Camera(this.app, this.world, () => {
       const s = this.world.scale.x;
@@ -48,20 +49,29 @@ class Game {
       background,
       6,
       this.app.ticker,
-      () => ui.showWin(),
+      () => this.endGame(),
     );
     this.world.addChild(items.view);
 
-    const onResize = () => {
+    window.addEventListener("resize", () => {
       resizeWorld();
       camera.clamp();
-    };
-    window.addEventListener("resize", onResize);
+    });
 
     resizeWorld();
     camera.clamp();
 
     console.log("Game started");
+  }
+
+  private endGame() {
+    console.log("Game ended - all items collected!");
+    this.ui.showWin(() => this.restart());
+  }
+
+  private restart() {
+    console.log("Restarting game...");
+    location.reload();
   }
 }
 
