@@ -26,8 +26,16 @@ html, body {
     display: flex;
     flex-direction: column;
     width: 100%;
-    height: 100%;
+    /* use dynamic viewport unit to avoid iOS safari address bar issue */
+    height: calc(var(--vh, 1vh) * 100);
     position: relative;
+}
+
+/* support fallback for browsers that don't support --vh variable */
+@supports not (height: calc(var(--vh, 1vh) * 100)) {
+    .game-container {
+        height: 100dvh; /* dynamic viewport height if available */
+    }
 }
 
 /* ============================================
