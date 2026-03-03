@@ -314,11 +314,11 @@ html, body {
 /* Мобильные устройства в ландшафтной ориентации */
 @media (orientation: landscape) and (max-height: 600px) {
     .game-container {
-        min-height: 340px;
+        min-height: 440px;
         overflow-y: auto;
     }
     .pixi-container {
-        min-height: 300px;
+        min-height: 400px;
     }
     .header {
         min-height: 44px;
