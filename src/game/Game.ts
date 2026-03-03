@@ -17,7 +17,11 @@ class Game {
   private readonly ITEMS_COUNT = 6;
 
   async start() {
-    await this.app.init({ resizeTo: window, antialias: true });
+    await this.app.init({
+      width: window.innerWidth,
+      height: window.innerHeight,
+      antialias: true,
+    });
     document.getElementById("pixi-container")!.appendChild(this.app.canvas);
 
     // Загрузка атласа с текстурами предметов
@@ -60,7 +64,7 @@ class Game {
     this.world.addChild(this.worldContent);
     this.app.stage.addChild(this.world);
 
-    // ✅ Инициализировать UI Manager (НЕ добавлять в Pixi сцену!)
+    // ✅ Инициализировать UI Manager
     this.ui = new UIManager();
     this.ui.connectControls(this.world);
     this.ui.onRestart(() => this.restart());
@@ -110,11 +114,12 @@ class Game {
   }
 
   private onScreenChange() {
-    const sw = window.innerWidth;
-    const sh = window.innerHeight;
+    const container = document.getElementById("pixi-container")!;
+    const rect = container.getBoundingClientRect();
+    const sw = rect.width;
+    const sh = rect.height; // ← реальная высота flex:1!
 
     this.app.renderer.resize(sw, sh);
-
     this.resizeWorld(sw, sh);
   }
 
