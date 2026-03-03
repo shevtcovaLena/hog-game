@@ -4,6 +4,8 @@ import Background from "./Background";
 class ItemManager {
   private container = new Container();
   private items: Sprite[] = [];
+  private tapHandlers = new WeakMap<Sprite, () => void>();
+  private animMap = new WeakMap<Sprite, () => void>();
 
   constructor(
     private atlasTextures: Record<string, Texture>,
@@ -27,9 +29,26 @@ class ItemManager {
    * Очистить все предметы и контейнер (перед перезапуском)
    */
   cleanup() {
-    this.items.forEach((item) => item.destroy());
+    this.items.forEach((item) => {
+      const tap = this.tapHandlers.get(item);
+      if (tap) {
+        item.off("pointertap", tap);
+      }
+
+      const anim = this.animMap.get(item);
+      if (anim) {
+        this.ticker.remove(anim);
+      }
+
+      if (!item.destroyed) item.destroy();
+    });
+
     this.items = [];
-    this.container.destroy({ children: true });
+
+    if (!this.container.destroyed) {
+      this.container.removeChildren();
+      this.container.destroy();
+    }
   }
 
   private spawnRandomItems() {
@@ -37,11 +56,15 @@ class ItemManager {
       key.startsWith("obj-lvl-0/"),
     );
 
+    if (objectKeys.length === 0) {
+      throw new Error("ItemManager: no obj-lvl-0 textures found in atlas");
+    }
+
     if (objectKeys.length < this.count) {
       console.warn("Не хватает объектов в атласе для spawnRandomItems");
     }
 
-    const selectedKeys = this.selectRandomTexture(this.count);
+    const selectedKeys = this.selectRandomTexture(this.count, objectKeys);
 
     const worldWidth = this.bg.worldWidth;
     const worldHeight = this.bg.worldHeight;
@@ -57,7 +80,6 @@ class ItemManager {
       item.eventMode = "static";
       item.cursor = "pointer";
 
-      // позиция относительно центра фона с паддингом
       const offsetX = (Math.random() - 0.5) * (worldWidth - padding * 2);
       const offsetY = (Math.random() - 0.5) * (worldHeight - padding * 2);
       const x = centerX + offsetX;
@@ -65,26 +87,32 @@ class ItemManager {
 
       item.position.set(x, y);
 
-      item.on("pointertap", () => this.collect(item));
+      const tapHandler = () => this.collect(item);
+      this.tapHandlers.set(item, tapHandler);
+      item.on("pointertap", tapHandler);
 
       this.container.addChild(item);
       this.items.push(item);
     });
-
-    console.log("Spawned items:", this.items.length, selectedKeys);
   }
 
-  private selectRandomTexture(count: number): string[] {
-    const textureNames = Object.keys(this.atlasTextures);
-    const selected: string[] = [];
+  private selectRandomTexture(count: number, available: string[]): string[] {
+    const pool = [...available];
 
-    for (let i = 0; i < count; i++) {
-      const name =
-        textureNames[Math.floor(Math.random() * textureNames.length)];
-      selected.push(name);
+    if (pool.length >= count) {
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+      return pool.slice(0, count);
     }
 
-    return [...new Set(selected)];
+    const result = [...pool];
+    while (result.length < count) {
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      result.push(pick);
+    }
+    return result;
   }
 
   private collect(item: Sprite) {
@@ -98,22 +126,23 @@ class ItemManager {
 
       if (t >= 1) {
         this.ticker.remove(anim);
-        item.destroy();
+        this.animMap.delete(item);
+
+        if (!item.destroyed) item.destroy();
         this.items = this.items.filter((i) => i !== item);
 
-        // Обновить счетчик в UI
         const collected = this.count - this.items.length;
         if (this.onItemCollected) {
           this.onItemCollected(collected, this.count);
         }
 
-        // Проверить завершение
         if (this.items.length === 0) {
           this.onComplete();
         }
       }
     };
 
+    this.animMap.set(item, anim);
     this.ticker.add(anim);
   }
 }

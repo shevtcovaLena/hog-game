@@ -3,7 +3,6 @@ import { Viewport } from "pixi-viewport";
 import Background from "./world/Background";
 import ItemManager from "./world/ItemManager";
 import UIManager from "./ui/UIManager";
-// import { initSafariBarsHide } from "../utils/hideSafariBars";
 
 class Game {
   private app = new Application();
@@ -17,10 +16,11 @@ class Game {
 
   private readonly ITEMS_COUNT = 6;
 
-  async start() {
-    // Хак для скрытия полос Safari на iPhone
-    // initSafariBarsHide();
+  // bound handlers so they can be removed on destroy
+  private handleResize = () => this.onScreenChange();
+  private handleOrientation = () => this.onScreenChange();
 
+  async start() {
     await this.app.init({
       width: window.innerWidth,
       height: window.innerHeight,
@@ -37,7 +37,6 @@ class Game {
       );
     }
     this.textures = atlas.textures;
-    console.log(`Загружено текстур: ${Object.keys(this.textures).length}`);
 
     // Загрузка фонового изображения
     const bgTexture = await Assets.load("/assets/back_lv0.webp");
@@ -57,32 +56,60 @@ class Game {
       events: this.app.renderer.events,
     });
 
-    // ✅ Базовые плагины для управления
+    // Базовые плагины для управления
     this.world.drag().pinch().wheel().decelerate();
     this.world.clamp({ direction: "all" });
     this.world.clampZoom({ minScale: 1, maxScale: 3 });
 
-    // ✅ Одновременный контейнер для масштабирования всего содержимого
+    // Одновременный контейнер для масштабирования всего содержимого
     this.worldContent = new Container();
     this.worldContent.addChild(this.background.view);
     this.world.addChild(this.worldContent);
     this.app.stage.addChild(this.world);
 
-    // ✅ Инициализировать UI Manager
+    // Инициализировать UI Manager
     this.ui = new UIManager();
     this.ui.connectControls(this.world);
     this.ui.onRestart(() => this.restart());
 
-    // ✅ Resize + ориентация
-    window.addEventListener("resize", () => this.onScreenChange());
-    window.addEventListener("orientationchange", () => {
-      this.onScreenChange();
-    });
+    // Resize + orientation
+    window.addEventListener("resize", this.handleResize);
+    window.addEventListener("orientationchange", this.handleOrientation);
     this.onScreenChange();
 
-    // ✅ Запустить первый уровень
+    // Запустить первый уровень
     this.spawnItems();
     this.ui.startTimer();
+  }
+
+  /**
+   * Уничтожить игру и убрать все слушатели/ресурсы
+   */
+  public destroy() {
+    try {
+      window.removeEventListener("resize", this.handleResize);
+      window.removeEventListener("orientationchange", this.handleOrientation);
+    } catch (e) {
+      console.warn("Error during Game disposal:", e);
+    }
+
+    if (this.itemsManager) {
+      this.itemsManager.cleanup();
+    }
+
+    if (this.ui && typeof this.ui.dispose === "function") {
+      this.ui.dispose();
+    }
+
+    try {
+      // destroy PIXI application and free textures
+      const appWithDestroy = this.app as unknown as {
+        destroy?: (removeView?: boolean) => void;
+      };
+      if (appWithDestroy.destroy) appWithDestroy.destroy(true);
+    } catch (e) {
+      console.warn("Error during PIXI app destruction:", e);
+    }
   }
 
   private spawnItems() {
@@ -108,12 +135,10 @@ class Game {
   }
 
   private endGame() {
-    console.log("🎉 Game ended - all items collected!");
     this.ui.showWin();
   }
 
   private restart() {
-    console.log("🔄 Restarting game...");
     this.ui.reset();
     this.spawnItems();
     this.ui.startTimer();

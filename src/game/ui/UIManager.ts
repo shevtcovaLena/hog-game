@@ -2,7 +2,6 @@ import { Viewport } from "pixi-viewport";
 
 /**
  * UIManager — управление HTML UI (header, footer, модалки)
- * Отделен от Pixi сцены для независимой работы
  */
 class UIManager {
   private startTime: number = 0;
@@ -20,6 +19,16 @@ class UIManager {
   private restartPopupBtn = document.getElementById("restart-popup-btn")!;
   private closeInfoBtn = document.getElementById("close-info-btn")!;
 
+  // bound handlers for removal
+  private zoomInHandler: EventListener | null = null;
+  private zoomOutHandler: EventListener | null = null;
+  private resetHandler: EventListener | null = null;
+  private infoBtnHandler: EventListener | null = null;
+  private closeInfoHandler: EventListener | null = null;
+  private infoPopupClickHandler: EventListener | null = null;
+  private winPopupClickHandler: EventListener | null = null;
+  private restartPopupHandler: EventListener | null = null;
+
   constructor() {
     this.setupEventListeners();
     this.startTime = Date.now();
@@ -29,32 +38,39 @@ class UIManager {
    * Подключить кнопки управления камерой
    */
   public connectControls(viewport: Viewport) {
-    this.zoomInBtn.addEventListener("click", () => {
+    this.zoomInHandler = (e: Event) => {
+      void e;
       const currentZoom = viewport.scale.x;
       const newZoom = Math.min(currentZoom + 0.2, 3);
       viewport.scale.set(newZoom);
-    });
-
-    this.zoomOutBtn.addEventListener("click", () => {
+    };
+    this.zoomOutHandler = (e: Event) => {
+      void e;
       const currentZoom = viewport.scale.x;
       const newZoom = Math.max(currentZoom - 0.2, 1);
       viewport.scale.set(newZoom);
-    });
-
-    this.resetBtn.addEventListener("click", () => {
+    };
+    this.resetHandler = (e: Event) => {
+      void e;
       viewport.position.set(0, 0);
       viewport.scale.set(1);
-    });
+    };
+
+    this.zoomInBtn.addEventListener("click", this.zoomInHandler);
+    this.zoomOutBtn.addEventListener("click", this.zoomOutHandler);
+    this.resetBtn.addEventListener("click", this.resetHandler);
   }
 
   /**
    * Назначить callback на перезагрузку
    */
   public onRestart(callback: () => void) {
-    this.restartPopupBtn.addEventListener("click", () => {
+    this.restartPopupHandler = (e: Event) => {
+      void e;
       callback();
       this.hideWin();
-    });
+    };
+    this.restartPopupBtn.addEventListener("click", this.restartPopupHandler);
   }
 
   /**
@@ -84,13 +100,14 @@ class UIManager {
    */
   public startTimer() {
     this.startTime = Date.now();
+    // once per second is sufficient for the timer
     this.timerInterval = setInterval(() => {
       const elapsedSeconds = Math.floor((Date.now() - this.startTime) / 1000);
       const minutes = Math.floor(elapsedSeconds / 60);
       const seconds = elapsedSeconds % 60;
       const timeStr = `⏰ ${minutes}:${seconds.toString().padStart(2, "0")}`;
       this.timerEl.textContent = timeStr;
-    }, 100);
+    }, 1000);
   }
 
   /**
@@ -118,35 +135,77 @@ class UIManager {
    * Подключить обработчики событий
    */
   private setupEventListeners() {
-    // Информация
-    this.infoBtn.addEventListener("click", () => {
+    this.infoBtnHandler = (e: Event) => {
+      void e;
       this.infoPopup.classList.remove("hidden");
-    });
+    };
+    this.infoBtn.addEventListener("click", this.infoBtnHandler);
 
-    // Закрыть информацию
-    this.closeInfoBtn.addEventListener("click", () => {
+    this.closeInfoHandler = (e: Event) => {
+      void e;
       this.infoPopup.classList.add("hidden");
-    });
+    };
+    this.closeInfoBtn.addEventListener("click", this.closeInfoHandler);
 
-    // Закрыть модалку при клике вне контента
-    this.infoPopup.addEventListener("click", (e) => {
+    this.infoPopupClickHandler = (e: Event) => {
       if (e.target === this.infoPopup) {
         this.infoPopup.classList.add("hidden");
       }
-    });
+    };
+    this.infoPopup.addEventListener("click", this.infoPopupClickHandler);
 
-    this.winPopup.addEventListener("click", (e) => {
-      if (e.target === this.winPopup) {
-        return; // Не закрывать на клик вне - нужно нажать кнопку
-      }
-    });
-
-    // Запретить скрыть победный экран случайно (только через кнопку)
-    this.winPopup.addEventListener("click", (e) => {
-      if (e.target !== this.restartPopupBtn) {
+    this.winPopupClickHandler = (e: Event) => {
+      if ((e.target as HTMLElement) !== this.restartPopupBtn) {
         e.stopPropagation();
       }
-    });
+    };
+    this.winPopup.addEventListener("click", this.winPopupClickHandler);
+  }
+
+  /**
+   * Удалить все слушатели и остановить таймер при уничтожении игры
+   */
+  public dispose() {
+    this.stopTimer();
+
+    try {
+      if (this.infoBtnHandler) {
+        this.infoBtn.removeEventListener("click", this.infoBtnHandler);
+      }
+
+      if (this.closeInfoHandler) {
+        this.closeInfoBtn.removeEventListener("click", this.closeInfoHandler);
+      }
+
+      if (this.infoPopupClickHandler) {
+        this.infoPopup.removeEventListener("click", this.infoPopupClickHandler);
+      }
+
+      if (this.winPopupClickHandler) {
+        this.winPopup.removeEventListener("click", this.winPopupClickHandler);
+      }
+
+      if (this.zoomInHandler) {
+        this.zoomInBtn.removeEventListener("click", this.zoomInHandler);
+      }
+
+      if (this.zoomOutHandler) {
+        this.zoomOutBtn.removeEventListener("click", this.zoomOutHandler);
+      }
+
+      if (this.resetHandler) {
+        this.resetBtn.removeEventListener("click", this.resetHandler);
+      }
+
+      if (this.restartPopupHandler) {
+        this.restartPopupBtn.removeEventListener(
+          "click",
+          this.restartPopupHandler,
+        );
+      }
+    } catch (e) {
+      console.warn("Error during UIManager disposal:", e);
+    }
   }
 }
 
