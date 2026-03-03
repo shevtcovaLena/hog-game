@@ -318,12 +318,9 @@ html, body {
     }
 
     .game-container {
-        min-height: 440px;
+        min-height: 120vh;
         margin: 0px 10px;
         width: calc(100% - 20px);
-    }
-    .pixi-container {
-        min-height: 400px;
     }
 
 @media (orientation: landscape) and (max-height: 600px) {
@@ -332,9 +329,9 @@ html, body {
         padding: 4px 12px;
     }
 
-    .footer {
+    /* .footer {
         display: none;
-    }
+    } */
 
     .timer, .score {
         font-size: 13px;
