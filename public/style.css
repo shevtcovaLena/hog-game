@@ -14,8 +14,9 @@ html, body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
     background-color: #000000;
     color: rgba(255, 255, 255, 0.87);
-    overflow: hidden;
-    touch-action: manipulation;
+    /* overflow: hidden; */
+    /* touch-action: manipulation; */
+    -webkit-overflow-scrolling: touch;
 }
 
 /* ============================================
@@ -318,10 +319,14 @@ html, body {
     }
 
     .game-container {
-        min-height: 120vh;
+        min-height: 340px;
         margin: 0px 10px;
         width: calc(100% - 20px);
     }
+    .pixi-container {
+        min-height: 300px;
+    }
+}
 
 @media (orientation: landscape) and (max-height: 600px) {
     .header {

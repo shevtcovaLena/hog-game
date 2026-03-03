@@ -3,6 +3,7 @@ import { Viewport } from "pixi-viewport";
 import Background from "./world/Background";
 import ItemManager from "./world/ItemManager";
 import UIManager from "./ui/UIManager";
+// import { initSafariBarsHide } from "../utils/hideSafariBars";
 
 class Game {
   private app = new Application();
@@ -17,6 +18,9 @@ class Game {
   private readonly ITEMS_COUNT = 6;
 
   async start() {
+    // Хак для скрытия полос Safari на iPhone
+    // initSafariBarsHide();
+
     await this.app.init({
       width: window.innerWidth,
       height: window.innerHeight,
@@ -71,7 +75,9 @@ class Game {
 
     // ✅ Resize + ориентация
     window.addEventListener("resize", () => this.onScreenChange());
-    window.addEventListener("orientationchange", () => this.onScreenChange());
+    window.addEventListener("orientationchange", () => {
+      this.onScreenChange();
+    });
     this.onScreenChange();
 
     // ✅ Запустить первый уровень
