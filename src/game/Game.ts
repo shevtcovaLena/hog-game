@@ -3,12 +3,14 @@ import { Viewport } from "pixi-viewport";
 import Background from "./world/Background";
 import ItemManager from "./world/ItemManager";
 import UIManager from "./ui/UIManager";
+import LoadingScreen from "./ui/LoadingScreen";
 
 class Game {
   private app = new Application();
   private world!: Viewport;
   private worldContent!: Container;
   private ui!: UIManager;
+  private loader!: LoadingScreen;
 
   private background!: Background;
   private itemsManager!: ItemManager;
@@ -21,71 +23,97 @@ class Game {
   private handleOrientation = () => this.onScreenChange();
 
   async start() {
+    // 1. СОЗДАЁМ ЛОАДЕР ПЕРВЫМ (до всего)
+    this.loader = new LoadingScreen(); // ← ДОБАВИТЬ
+
+    // 2. Инициализируем приложение
     await this.app.init({
       width: window.innerWidth,
       height: window.innerHeight,
       antialias: true,
-    });
-    document.getElementById("pixi-container")!.appendChild(this.app.canvas);
-
-    // Загрузка атласа с текстурами предметов
-    const atlas = await Assets.load<Spritesheet>("/assets/level0_items.json");
-    if (!atlas?.textures) {
-      console.error("Ошибка: атлас не загрузился или не содержит текстур");
-      throw new Error(
-        "Не удалось загрузить атлас предметов (/assets/level0_items.json)",
-      );
-    }
-    this.textures = atlas.textures;
-
-    // Загрузка фонового изображения
-    const bgTexture = await Assets.load("/assets/back_lv0.webp");
-    if (!bgTexture) {
-      console.error("Ошибка: фоновое изображение не загрузилось");
-      throw new Error(
-        "Не удалось загрузить фоновое изображение (/assets/back_lv0.webp)",
-      );
-    }
-    this.background = new Background(bgTexture);
-
-    this.world = new Viewport({
-      screenWidth: this.app.screen.width,
-      screenHeight: this.app.screen.height,
-      worldWidth: this.app.screen.width,
-      worldHeight: this.app.screen.height,
-      events: this.app.renderer.events,
+      backgroundColor: 0x1a1a1a, // ← ИЗМЕНИТЬ с 0x000000 на 0x1a1a1a
     });
 
-    // Базовые плагины для управления
-    this.world.drag().pinch().wheel().decelerate();
-    this.world.clamp({ direction: "all" });
-    this.world.clampZoom({ minScale: 1, maxScale: 3 });
+    try {
+      // 4. Загрузка с прогрессом
+      this.loader.update(10, "Загрузка текстур..."); // ← ДОБАВИТЬ
 
-    // Одновременный контейнер для масштабирования всего содержимого
-    this.worldContent = new Container();
-    this.worldContent.addChild(this.background.view);
-    this.world.addChild(this.worldContent);
-    this.app.stage.addChild(this.world);
+      const atlas = await Assets.load<Spritesheet>("/assets/level0_items.json");
+      if (!atlas?.textures) {
+        throw new Error("Атлас не загрузился");
+      }
+      this.textures = atlas.textures;
 
-    // Инициализировать UI Manager
-    this.ui = new UIManager();
-    this.ui.connectControls(this.world);
-    this.ui.onRestart(() => this.restart());
+      this.loader.update(50, "Загрузка фона..."); // ← ДОБАВИТЬ
 
-    // Resize + orientation
-    window.addEventListener("resize", this.handleResize);
-    window.addEventListener("orientationchange", this.handleOrientation);
-    this.onScreenChange();
+      const bgTexture = await Assets.load("/assets/back_lv0.webp");
+      if (!bgTexture) {
+        throw new Error("Фон не загрузился");
+      }
+      this.background = new Background(bgTexture);
 
-    // Запустить уровень
-    this.spawnItems();
-    this.ui.startTimer();
+      this.loader.update(70, "Инициализация мира..."); // ← ДОБАВИТЬ
+
+      // 5. Инициализация мира (без изменений)
+      this.world = new Viewport({
+        screenWidth: this.app.screen.width,
+        screenHeight: this.app.screen.height,
+        worldWidth: this.app.screen.width,
+        worldHeight: this.app.screen.height,
+        events: this.app.renderer.events,
+      });
+
+      this.world.drag().pinch().wheel().decelerate();
+      this.world.clamp({ direction: "all" });
+      this.world.clampZoom({ minScale: 1, maxScale: 3 });
+
+      this.worldContent = new Container();
+      this.worldContent.addChild(this.background.view);
+      this.world.addChild(this.worldContent);
+      this.app.stage.addChild(this.world);
+
+      this.loader.update(90, "Настройка UI..."); // ← ДОБАВИТЬ
+
+      // 6. UI (без изменений)
+      this.ui = new UIManager();
+      this.ui.connectControls(this.world);
+      this.ui.onRestart(() => this.restart());
+
+      // 7. Resize listeners (без изменений)
+      window.addEventListener("resize", this.handleResize);
+      window.addEventListener("orientationchange", this.handleOrientation);
+      this.onScreenChange();
+
+      this.loader.update(100, "Готово!"); // ← ДОБАВИТЬ
+
+      // 8. ТЕПЕРЬ добавляем canvas в DOM (перенести сюда)
+      document.getElementById("pixi-container")!.appendChild(this.app.canvas); // ← ПЕРЕНЕСТИ СЮДА
+
+      // 9. Скрываем лоадер
+      this.loader.hide(); // ← ДОБАВИТЬ
+
+      // 10. Запуск уровня (без изменений)
+      this.spawnItems();
+      this.ui.startTimer();
+    } catch (error) {
+      // 11. Обработка ошибок
+      console.error("Ошибка загрузки:", error);
+      this.loader.showError("Не удалось загрузить игру", () => {
+        window.location.reload();
+      }); // ← ДОБАВИТЬ весь блок catch
+    }
   }
 
   /**
    * Уничтожить игру и убрать все слушатели/ресурсы
    */
   public destroy() {
+    try {
+      this.loader?.hide();
+    } catch (e) {
+      console.error("Error hiding loader during Game destruction:", e);
+    }
+
     try {
       window.removeEventListener("resize", this.handleResize);
       window.removeEventListener("orientationchange", this.handleOrientation);
@@ -102,7 +130,6 @@ class Game {
     }
 
     try {
-      // destroy PIXI application and free textures
       const appWithDestroy = this.app as unknown as {
         destroy?: (removeView?: boolean) => void;
       };
