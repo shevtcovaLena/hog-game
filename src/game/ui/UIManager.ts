@@ -22,7 +22,7 @@ class UIManager {
   // bound handlers for removal
   private zoomInHandler: EventListener | null = null;
   private zoomOutHandler: EventListener | null = null;
-  private resetHandler: EventListener | null = null;
+  private resetHandler: ((e?: Event) => void) | null = null;
   private infoBtnHandler: EventListener | null = null;
   private closeInfoHandler: EventListener | null = null;
   private infoPopupClickHandler: EventListener | null = null;
@@ -50,7 +50,7 @@ class UIManager {
       const newZoom = Math.max(currentZoom - 0.2, 1);
       viewport.scale.set(newZoom);
     };
-    this.resetHandler = (e: Event) => {
+    this.resetHandler = (e?: Event) => {
       void e;
       viewport.position.set(0, 0);
       viewport.scale.set(1);
@@ -65,7 +65,7 @@ class UIManager {
    * Назначить callback на перезагрузку
    */
   public onRestart(callback: () => void) {
-    this.restartPopupHandler = (e: Event) => {
+    this.restartPopupHandler = (e?: Event) => {
       void e;
       callback();
       this.hideWin();
@@ -100,7 +100,6 @@ class UIManager {
    */
   public startTimer() {
     this.startTime = Date.now();
-    // once per second is sufficient for the timer
     this.timerInterval = setInterval(() => {
       const elapsedSeconds = Math.floor((Date.now() - this.startTime) / 1000);
       const minutes = Math.floor(elapsedSeconds / 60);
@@ -124,6 +123,7 @@ class UIManager {
    * Очистить UI при перезагрузке
    */
   public reset() {
+    this.resetHandler?.();
     this.stopTimer();
     this.startTime = Date.now();
     this.timerEl.textContent = "⏰ 0:00";

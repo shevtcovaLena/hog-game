@@ -77,7 +77,7 @@ class Game {
     window.addEventListener("orientationchange", this.handleOrientation);
     this.onScreenChange();
 
-    // Запустить первый уровень
+    // Запустить уровень
     this.spawnItems();
     this.ui.startTimer();
   }
